@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神經特攻隊：人體反應大挑戰</title>
+<style>
+:root{--ink:#24324a;--blue:#3767d6;--mint:#dff7ef;--yellow:#fff1b8;--pink:#ffe1e7;--paper:#f5f8ff}
+*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(135deg,#eaf2ff,#fff8e7);color:var(--ink)}
+main{max-width:900px;margin:auto;padding:22px}.hero{background:#fff;border-radius:24px;padding:24px;text-align:center;box-shadow:0 8px 25px #263b6418}
+h1{margin:5px 0;color:#244fb5;font-size:clamp(25px,5vw,38px)}.sub{color:#62718b}.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:15px}.pill{background:#eef3ff;padding:8px 14px;border-radius:99px;font-weight:700}
+.panel{background:#fff;margin-top:18px;padding:22px;border-radius:20px;box-shadow:0 6px 20px #263b6412}.hidden{display:none}.progress{height:10px;background:#e8edf7;border-radius:20px;overflow:hidden;margin:12px 0 18px}.bar{height:100%;background:linear-gradient(90deg,#4b79e8,#43c6a5);width:0%;transition:.3s}
+.kicker{color:#3767d6;font-weight:800}.question{font-size:22px;font-weight:800;line-height:1.5;margin:12px 0}.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+button{border:0;border-radius:14px;padding:13px 16px;font-size:16px;font-weight:700;cursor:pointer;background:#edf2ff;color:#284b9c;transition:.15s}
+button:hover{transform:translateY(-2px);filter:brightness(.98)}button:disabled{cursor:default;opacity:.8;transform:none}.primary{background:#3767d6;color:white}.option{text-align:left;min-height:56px}.option.correct{background:#d9f6e8;color:#176b43}.option.wrong{background:#ffe0e4;color:#a72c42}
+.feedback{margin-top:14px;padding:13px;border-radius:12px;font-weight:700;min-height:48px}.good{background:#e0f7eb;color:#176b43}.bad{background:#fff0d8;color:#855300}
+.flow{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:18px 0}.step{background:#edf2ff;border:2px solid #d8e2ff;border-radius:13px;padding:12px;font-weight:800}.arrow{font-size:22px;color:#789}
+.sortitem{display:inline-block;margin:5px}.sortitem button{background:#fff1bd;color:#72530a;border:2px solid #f2d77d}.sortitem button.selected{outline:3px solid #3767d6}
+.scenario{background:#f4f7ff;border-left:5px solid #6688e8;padding:15px;border-radius:10px;line-height:1.7}
+.footer{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+input{padding:10px;border:2px solid #dce4f4;border-radius:10px;font-size:16px;width:100px}
+.big{font-size:42px;font-weight:900;color:#3767d6;text-align:center;margin:14px}
+.small{font-size:14px;color:#6a7890}.result{text-align:center;font-size:20px;line-height:1.8}
+</style>
+</head>
+<body>
+<main>
+ <section class="hero">
+  <div style="font-size:48px">🧠 ⚡ 🦸</div>
+  <h1>神經特攻隊：人體反應大挑戰</h1>
+  <div class="sub">接收刺激、傳遞訊息、快速出擊！完成四關成為神經特攻隊長。</div>
+  <div class="stats"><span class="pill">⭐ 得分：<b id="score">0</b></span><span class="pill">🏁 關卡：<b id="stage">準備開始</b></span></div>
+ </section>
+ <section id="intro" class="panel">
+  <h2>🎮 任務說明</h2>
+  <p>你是人體神經特攻隊的新隊員！人體遇到不同刺激時，需要感受器接收訊息，再由神經系統傳遞、處理，最後做出反應。</p>
+  <ul><li>第一關：刺激辨識</li><li>第二關：感受器偵查</li><li>第三關：神經傳令（流程排序）</li><li>第四關：極速反應與情境挑戰</li></ul>
+  <p class="small">每題答對可得 10 分。請仔細閱讀情境再作答！</p>
+  <button class="primary" onclick="startGame()">開始任務 ▶</button>
+ </section>
+ <section id="game" class="panel hidden">
+  <div class="kicker" id="level"></div><div class="progress"><div class="bar" id="bar"></div></div>
+  <div id="content"></div><div id="feedback" class="feedback hidden"></div>
+  <div class="footer"><span class="small" id="counter"></span><button id="next" class="primary hidden" onclick="nextQuestion()">下一題 →</button></div>
+ </section>
+ <section id="finish" class="panel hidden">
+  <div style="font-size:54px;text-align:center">🏆</div><h2 style="text-align:center">任務完成！</h2>
+  <div class="result" id="result"></div>
+  <div class="scenario"><b>本週最重要的觀念：</b><div class="flow"><span class="step">刺激</span><span class="arrow">→</span><span class="step">感受器接收</span><span class="arrow">→</span><span class="step">神經傳遞與處理</span><span class="arrow">→</span><span class="step">產生反應</span></div>
+  碰到燙物縮手可能是反射動作，脊髓能參與快速處理，不一定要等大腦先做有意識的判斷。</div>
+  <button class="primary" onclick="location.reload()">再玩一次 ↻</button>
+ </section>
+</main>
+<script>
+const rounds=[
+ {name:"第一關｜刺激辨識",items:[
+  {q:"手不小心碰到很燙的鍋子，最先引起反應的刺激是什麼？",a:["高溫","聲音","光線"],c:0,e:"鍋子的高溫是刺激，皮膚中的感受器能偵測溫度變化。"},
+  {q:"突然聽到巨大的聲響，這個情境中的刺激是什麼？",a:["氣味","聲音","壓力"],c:1,e:"聲音是刺激，耳朵中的聽覺感受器負責接收。"},
+  {q:"看到球朝自己飛來，眼睛接收到的刺激主要是？",a:["光線形成的影像","高溫","氣味"],c:0,e:"眼睛中的視覺感受器接收光線，形成視覺訊息。"}
+ ]},
+ {name:"第二關｜感受器偵查",items:[
+  {q:"看到閃爍的紅色警示燈，主要是哪個感受器接收刺激？",a:["耳朵的聽覺感受器","眼睛的視覺感受器","皮膚的觸覺感受器"],c:1,e:"視覺感受器位於眼睛，負責接收光線刺激。"},
+  {q:"聞到烤麵包的香味，主要由哪裡接收刺激？",a:["鼻腔中的嗅覺感受器","舌頭的味覺感受器","耳朵"],c:0,e:"鼻腔中的嗅覺感受器能接收氣味分子帶來的刺激。"},
+  {q:"手指碰到冰塊，主要由哪個部位的感受器接收溫度刺激？",a:["眼睛","皮膚","耳朵"],c:1,e:"皮膚中有能接收溫度、壓力等刺激的感受器。"}
+ ]},
+ {name:"第三關｜神經傳令",items:[
+  {q:"請選出一般感覺與自主動作的正確簡化流程。",a:["反應→刺激→處理→接收","刺激→感受器接收→神經傳遞與處理→反應","感受器→反應→刺激→處理"],c:1,e:"先有刺激，再由感受器接收，神經系統傳遞與處理訊息，最後產生反應。"},
+  {q:"腦與脊髓合稱什麼？",a:["中樞神經系統","周邊神經系統","消化系統"],c:0,e:"腦和脊髓組成中樞神經系統，負責整合、處理訊息等工作。"},
+  {q:"周邊神經最主要的工作是什麼？",a:["製造血液","連接中樞神經與身體各部位、傳遞訊息","消化食物"],c:1,e:"周邊神經連接中樞神經系統與身體各處，傳遞感覺及運動相關訊息。"}
+ ]},
+ {name:"第四關｜極速反應",items:[
+  {q:"碰到很燙的物品立刻縮手，快速縮手可能由哪個構造參與反射處理？",a:["脊髓","胃","肺"],c:0,e:"縮手反射可經由脊髓快速完成部分訊息處理，不必等大腦先有意識判斷。"},
+  {q:"尺反應實驗中，直尺下落距離越短，通常代表什麼？",a:["反應時間越長","反應時間越短","完全沒有反應"],c:1,e:"直尺下落距離越短，代表接住直尺前經過的時間通常越短。"},
+  {q:"同一個人測量三次，直尺下落距離不同，最合理的解釋是？",a:["神經系統每次都停止工作","注意力、預期心理或操作方式可能不同","直尺長度一定改變"],c:1,e:"注意力、疲倦、是否預期放尺，以及測量操作都可能造成差異。"}
+ ]}
+];
+let r=0,i=0,score=0,answered=false,order=[];
+const $=id=>document.getElementById(id);
+function startGame(){$("intro").classList.add("hidden");$("game").classList.remove("hidden");render()}
+function render(){
+ answered=false;let round=rounds[r],item=round.items[i];
+ $("stage").textContent=(r+1)+"/4";$("level").textContent=round.name;
+ $("bar").style.width=((r*3+i)/12*100)+"%";
+ $("counter").textContent=`第 ${i+1} / 3 題`;
+ $("feedback").className="feedback hidden";$("next").classList.add("hidden");
+ $("content").innerHTML=`<div class="question">${item.q}</div><div class="choices">${item.a.map((x,n)=>`<button class="option" onclick="choose(${n})">${["A","B","C"][n]}. ${x}</button>`).join("")}</div>`;
+}
+function choose(n){
+ if(answered)return;answered=true;let item=rounds[r].items[i],buttons=[...document.querySelectorAll(".option")];
+ buttons.forEach((b,k)=>{b.disabled=true;if(k===item.c)b.classList.add("correct");else if(k===n)b.classList.add("wrong")});
+ let ok=n===item.c;if(ok){score+=10;$("score").textContent=score}
+ $("feedback").textContent=(ok?"答對了！⭐ ":"再想一想！💡 ")+item.e;
+ $("feedback").className="feedback "+(ok?"good":"bad");$("next").classList.remove("hidden");$("next").textContent=(r===3&&i===2)?"查看任務成果 →":"下一題 →";
+}
+function nextQuestion(){if(!answered)return;i++;if(i>=3){i=0;r++}if(r>=4){finish();return}render()}
+function finish(){
+ $("game").classList.add("hidden");$("finish").classList.remove("hidden");$("stage").textContent="完成";
+ let msg=score>=100?"太棒了！你已經掌握神經系統的基本任務。":score>=70?"表現不錯！再複習錯題，你會更熟悉訊息傳遞流程。":"任務完成！回頭看看每題解析，再挑戰一次會更進步。";
+ $("result").innerHTML=`你得到 <b style="color:#3767d6;font-size:32px">${score} / 120</b> 分<br>${msg}`;
+}
+</script>
+</body></html>
